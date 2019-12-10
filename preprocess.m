@@ -1,9 +1,11 @@
-function processed_volume = preprocess(nifti_file)
+function processed_volume = preprocess(nifti_file, n_classes)
     %preprocess the nifti file: apply an Otsu thresholding, then keep the
     %largest blob to create a mask on the original image. Each image of the
     %nifti volume will be applied its own mask.
     %The returned value is a 3D matrix, containing 15 grayscale images.
     %The input nifti_file is the filename for the nifti to preprocess.
+    % n_classes allow to chose the number of thresholds (2 thresholds allow
+    % the removal of dark areas as well as of very bright ones)
     
     %load nifti file
     nii = load_nii(nifti_file);
@@ -11,15 +13,15 @@ function processed_volume = preprocess(nifti_file)
     dims = size(volume);
     processed_volume = zeros(dims);
     for img_idx = 1:dims(3)
-        %apply otsu thresholding
-        otsu = imbinarize(volume(:,:,img_idx),multithresh(volume(:,:,img_idx)));  
+        %apply otsu thresholding        
+        otsu = imquantize(volume(:,:,img_idx),multithresh(volume(:,:,img_idx),n_classes));          
         %find biggest blob
         mask = zeros(dims(1:2));
         best_blob_size = 0;
         %check each pixel
         for row = 1:dims(1)
             for col = 1:dims(2)
-                if otsu(row, col)
+                if otsu(row, col) == 2
                     %The pixel is part of a blob
                     blob = grayconnected(int8(otsu),row,col,0);
                     blob_size = sum(sum(blob));
