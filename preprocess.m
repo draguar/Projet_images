@@ -10,8 +10,12 @@ function processed_volume = preprocess(nifti_file, n_classes)
     %load nifti file
     nii = load_nii(nifti_file);
     volume = nii.img;
+    %normalise values
+    volume = volume / nii.hdr.dime.cal_max;
     dims = size(volume);
     processed_volume = zeros(dims);
+    
+    
     for img_idx = 1:dims(3)
         %apply otsu thresholding       
         auto_thresholds = multithresh(volume(:,:,img_idx),n_classes);
