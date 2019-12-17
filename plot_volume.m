@@ -1,4 +1,4 @@
-function plot_volume(volume, close_all)
+function plot_volume(volume, close_all, centroids)
     %Plot a volume: a subplot by image in the volume
     
     if nargin < 2
@@ -12,4 +12,8 @@ function plot_volume(volume, close_all)
     for img_idx = 1:nb_subplots
         subplot(nb_by_axis,nb_by_axis,img_idx)
         imshow(volume(:,:,img_idx), []);
+        if nargin > 2
+            hold on
+            plot(centroids(img_idx,1), centroids(img_idx,2), 'b*')
+        end
     end

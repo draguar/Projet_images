@@ -13,8 +13,14 @@ function processed_volume = preprocess(nifti_file, n_classes)
     dims = size(volume);
     processed_volume = zeros(dims);
     for img_idx = 1:dims(3)
-        %apply otsu thresholding        
-        otsu = imquantize(volume(:,:,img_idx),multithresh(volume(:,:,img_idx),n_classes));          
+        %apply otsu thresholding       
+        auto_thresholds = multithresh(volume(:,:,img_idx),n_classes);
+        % Augment the second threshold to be less stringent on what is "too
+        % bright.
+        if n_classes > 1
+            auto_thresholds(2) = auto_thresholds(2) * 1.3;
+        end
+        otsu = imquantize(volume(:,:,img_idx), auto_thresholds);          
         %find biggest blob
         mask = zeros(dims(1:2));
         best_blob_size = 0;
