@@ -20,3 +20,24 @@ error
 figure(4)
 plot_rgb(volume_ref, resized_translated_volume, false);
 
+%% Question 2.3
+
+%defining values
+t_min = -5;
+t_max = 5;
+t_step = 1;
+r_step = 50;
+nslices = size(volume_ref, 3);
+best_shifted_images = zeros(size(volume_ref));
+
+%figure(5)
+
+for i = 1:nslices
+    ref = volume_ref(:,:,i);
+    shifted_image = resized_translated_volume(:,:,i);
+    [lowest_error, t_x, t_y, r] = find_best_transformation(ref, shifted_image, t_min, t_max, t_step, r_step);
+    best_shifted_image = imrotate(imtranslate(shifted_image,[t_x, t_y],'FillValues',0), r, 'crop')
+    subplot(3,5,i)
+    %plot ref and best_shifted_image using rgb technique
+end
+
