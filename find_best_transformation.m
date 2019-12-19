@@ -1,4 +1,4 @@
-function [lowest_error, t_x, t_y, r] = find_best_transformation(ref, shifted_image, t_min, t_max, t_step, r_step)
+function [lowest_error, t_x, t_y, r] = find_best_transformation(ref, shifted_image, t_min, t_max, t_step, r_min, r_max, r_step)
     %this function finds the best transformation between 2 images using the
     %translation and rotation transformations. Similarity is checked with
     %compute_error function. Returns t_x, t_y and r, parameters which give
@@ -11,12 +11,10 @@ function [lowest_error, t_x, t_y, r] = find_best_transformation(ref, shifted_ima
             
             translated_volume = imtranslate(shifted_image,[x, y],'FillValues',0);
             
-            for r = 0:r_step:360
-                
+            for r = r_min:r_step:r_max
                 transformed_volume = imrotate(translated_volume, r, 'crop');
                 [error, resized_volume] = compute_error(ref, transformed_volume);
                 errors_list = [errors_list; error, x, y, r];
-                
             end
         end
     end
