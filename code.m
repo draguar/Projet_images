@@ -34,40 +34,12 @@ r_min = -30;
 r_max = 30;
 r_step = 3;
 
-nslices = size(volume_ref, 3);
-best_shifted_images = zeros(size(volume_ref));
-
-%figure(5)
-new_values_list = [];
-best_images = zeros(240,240,nslices);
-
-for i = 1:nslices
-    ref = volume_ref(:,:,i);
-    shifted_image = resized_translated_volume(:,:,i);
-    
-    %calculating best translation, generating corresponding image,and
-    %keeping all the results in a list
-    [lowest_error, t_x, t_y, r] = find_best_transformation(ref, shifted_image, t_min, t_max, t_step, r_min, r_max, r_step);
-    best_shifted_image = imrotate(imtranslate(shifted_image,[t_x, t_y],'FillValues',0), r, 'crop');
-    new_values_list = [new_values_list; lowest_error, t_x, t_y, r];
-    best_images(:,:,i) = best_shifted_image;
-    %these list can be used to compare results with image before
-    %transformation
-    
-    %subplot(3,5,i);
-    %je vous laisse faire le plot flemme
-    %plot ref and best_shifted_image using rgb technique
-end
-
-%%
-plot_rgb(volume_ref, best_images, true)
-
-new_values_list
-
-%alors niveau erreur ça a l'air pas mal mais visuellement je trouve ça un
-%peu claqué au sol ca matche vitef
-
-
+%calculating best translation, generating corresponding image,and
+%keeping all the results in a list
+[lowest_error, best_transform_volume, best_resized_volume, best_params] = find_best_transformation(volume_ref, translated_volume, t_min, t_max, t_step, r_min, r_max, r_step);
+lowest_error
+figure(5)
+plot_rgb(volume_ref, best_resized_volume, false)
 %% SECTION 3
 
 % Pour faire le trucs des points faut que je regarde dans mon projet de
