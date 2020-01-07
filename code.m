@@ -42,5 +42,6 @@ figure(5)
 plot_rgb(volume_ref, best_resized_volume, false)
 %% SECTION 3
 
+
 % Pour faire le trucs des points faut que je regarde dans mon projet de
 % traitement d'images de l'an dernier on a fait exactement ça

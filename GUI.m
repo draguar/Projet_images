@@ -53,16 +53,23 @@ function GUI_OpeningFcn(hObject, eventdata, handles, varargin)
 % varargin   command line arguments to GUI (see VARARGIN)
 vol_ref = varargin{1};
 vol_shift = varargin{2};
-slice = varargin{3};
+n_slices =  size(vol_ref,3);
+
+handles.current_data.vol1 = vol_ref;
+handles.current_data.vol2 = vol_shift;
+handles.current_data.slice = 1;
+handles.selected_dots.vol1 = cell(n_slices,1);
+handles.selected_dots.vol2 = cell(n_slices,1);
 
 axes(handles.axes1);
-imshow(vol_ref(:,:,slice))
+handles.image1 = clickableimage(handles.current_data.vol1(:,:,handles.current_data.slice));
+set(handles.axes1, 'Tag', 'vol1')
 
 axes(handles.axes2);
-imshow(vol_shift(:,:,slice))
+handles.image2 = clickableimage(handles.current_data.vol2(:,:,handles.current_data.slice));
+set(handles.axes2, 'Tag', 'vol2')
 
-n_slices =  size(vol_ref,3);
-set(handles.popupmenu1,'String',1:n_slices,'Value',slice);
+set(handles.popupmenu1,'String',1:n_slices,'Value',1);
 
 
 % Choose default command line output for GUI
@@ -72,7 +79,8 @@ handles.output = hObject;
 guidata(hObject, handles);
 
 % UIWAIT makes GUI wait for user response (see UIRESUME)
-% uiwait(handles.figure1);
+
+uiwait(handles.figure1);
 
 
 % --- Outputs from this function are returned to the command line.
@@ -83,22 +91,16 @@ function varargout = GUI_OutputFcn(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Get default command line output from handles structure
-varargout{1} = handles.output;
+varargout{2} = handles.output;
+varargout{1} = handles.selected_dots;
 
 
 % --- Executes on button press in pushbutton1.
-function pushbutton1_Callback(hObject, eventdata, handles)
+function pushbutton2_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
-
-% --- Executes on button press in pushbutton2.
-function pushbutton2_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton2 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
+uiresume(handles.figure1);
 
 % --- Executes on selection change in popupmenu1.
 function popupmenu1_Callback(hObject, eventdata, handles)
@@ -110,11 +112,31 @@ function popupmenu1_Callback(hObject, eventdata, handles)
 str = get(hObject, 'String');
 val = get(hObject,'Value');
 % Set current data to the selected data set.
-axes(handles.axes1)
-imshow(vol_ref(:,:,val))
-axes(handles.axes2)
-imshow(vol_shift(:,:,val))
 
+handles.current_data.slice = val;
+guidata(get(hObject, 'Parent'), handles);
+
+
+
+axes(handles.axes1);
+handles.image1 = clickableimage(handles.current_data.vol1(:,:,handles.current_data.slice));
+set(handles.axes1, 'Tag', 'vol1')
+dots = handles.selected_dots.vol1{handles.current_data.slice};
+if dots
+    hold(handles.axes1,'on'); 
+    plot(handles.axes1,dots(:,1), dots(:,2), 'rx');
+    hold(handles.axes1,'off');
+end
+
+axes(handles.axes2);
+handles.image2 = clickableimage(handles.current_data.vol2(:,:,handles.current_data.slice));
+set(handles.axes2, 'Tag', 'vol2')
+dots = handles.selected_dots.vol2{handles.current_data.slice};
+if dots
+    hold(handles.axes2,'on'); 
+    plot(handles.axes2,dots(:,1), dots(:,2), 'rx');
+    hold(handles.axes2,'off');
+end
 
 % Hints: contents = cellstr(get(hObject,'String')) returns popupmenu1 contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from popupmenu1
@@ -131,3 +153,41 @@ function popupmenu1_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+function imageHandle = clickableimage(image)
+    imageHandle = imshow(image);
+    set(imageHandle,'ButtonDownFcn',@ImageClickCallback);
+
+function ImageClickCallback ( objectHandle , eventData)
+    axesHandle  = get(objectHandle,'Parent');
+    guiHandle = get(axesHandle,'Parent');
+    handles = guidata(guiHandle);
+    current_slice = handles.current_data.slice;
+    
+    coordinates = get(axesHandle,'CurrentPoint'); 
+    coordinates = coordinates(1,1:2);
+    
+    vol_id = get(axesHandle,'Tag');
+    if strcmp(vol_id, 'vol1')
+        %handles.selected_dots.vol1{current_slice} = [handles.selected_dots.vol1{current_slice}; coordinates];
+        %with_new_dots = handles.selected_dots.vol1{current_slice};
+        
+        selected_dots = handles.selected_dots.vol1{current_slice};
+        with_new_dots = [selected_dots; coordinates];
+        handles.selected_dots.vol1{current_slice} = with_new_dots;
+    else
+        if strcmp(vol_id, 'vol2')
+            selected_dots = handles.selected_dots.vol2{current_slice};
+            with_new_dots = [selected_dots; coordinates];
+            handles.selected_dots.vol2{current_slice} = with_new_dots;
+        end
+    end    
+     
+    hold(axesHandle,'on'); 
+    plot(axesHandle,with_new_dots(:,1), with_new_dots(:,2), 'rx');
+    hold(axesHandle,'off');
+    guidata(guiHandle, handles)
+
+    
+    
