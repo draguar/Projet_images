@@ -41,7 +41,27 @@ lowest_error
 figure(5)
 plot_rgb(volume_ref, best_resized_volume, false)
 %% SECTION 3
+%type in points from images and get coordinates
+[x_ref, y_ref, x_newvol, y_newvol] = get_points_of_interest(volume_ref, best_resized_volume);
 
 
-% Pour faire le trucs des points faut que je regarde dans mon projet de
-% traitement d'images de l'an dernier on a fait exactement ça
+% align these points
+ref_ = zeros(size(x_ref, 1), 2);
+for i = 1:size(x_ref)
+    ref_(i,1) = x_ref(i);
+    ref_(i,2) = y_ref(i);
+end
+
+newvol_ = zeros(size(x_newvol, 1), 2)
+for i = 1:size(x_newvol);
+    newvol_(i,1) = x_newvol(i);
+    newvol_(i,2) = y_newvol(i);
+end
+
+tform = fitgeotrans(newvol_, ref_, 'NonreflectiveSimilarity')
+for i = 1:15
+    newvol_transformed(:,:,i) = imwarp(best_resized_volume(:,:,i), tform, 'OutputView', imref2d(size(volume_ref(:,:,i))));
+end
+    
+plot_rgb(volume_ref, newvol_transformed, false)
+
