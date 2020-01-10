@@ -166,7 +166,7 @@ function ImageClickCallback ( objectHandle , eventData)
     current_slice = handles.current_data.slice;
     
     coordinates = get(axesHandle,'CurrentPoint'); 
-    coordinates = coordinates(1,1:2);
+    coordinates = round(coordinates(1,1:2));
     
     vol_id = get(axesHandle,'Tag');
     if strcmp(vol_id, 'vol1')

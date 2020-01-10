@@ -14,12 +14,13 @@ translated_volume = imtranslate(volume_shift,translation,'FillValues',0);
 % A GARDER POUR LE RAPPORT
 [error, resized_volume] = compute_error(volume_ref, volume_shift);
 error
-figure(3)
+figure('name','Original volumes');
 plot_rgb(volume_ref, resized_volume, false);
 
 [error, resized_translated_volume] = compute_error(volume_ref, translated_volume);
 error
-figure(4)
+translation
+figure('name','Centroid-based translation');
 plot_rgb(volume_ref, resized_translated_volume, false);
 
 %% SECTION 2
@@ -38,34 +39,61 @@ r_step = 3;
 %keeping all the results in a list
 [lowest_error, best_transform_volume, best_resized_volume, best_params] = find_best_transformation(volume_ref, translated_volume, t_min, t_max, t_step, r_min, r_max, r_step);
 lowest_error
-figure(5)
+best_params
+figure('name','Exploration-based best translation and rotation');
 plot_rgb(volume_ref, best_resized_volume, false)
 %% SECTION 3
 %type in points from images and get coordinates
-[x_ref, y_ref, x_newvol, y_newvol] = get_points_of_interest(volume_ref, resized_volume);
-
-
-% align these points
-ref_ = zeros(size(x_ref, 1), 2);
-for i = 1:size(x_ref)
-    ref_(i,1) = x_ref(i);
-    ref_(i,2) = y_ref(i);
+points_of_interest = GUI(volume_ref, translated_volume);
+ref_point = [];
+shift_points = [];
+for slice = 1:size(points_of_interest.vol1,1)
+    ref_point = [ref_point;points_of_interest.vol1{slice}];
+    shift_points = [shift_points;points_of_interest.vol2{slice}];
 end
+ref_point'
+shift_points'
 
-newvol_ = zeros(size(x_newvol, 1), 2)
-for i = 1:size(x_newvol);
-    newvol_(i,1) = x_newvol(i);
-    newvol_(i,2) = y_newvol(i);
+[distance, pointset_params] = find_pointset_transformation(ref_point', shift_points', t_min, t_max, t_step, r_min, r_max, r_step);
+
+% Apply transformation
+translated_pointset = imtranslate(translated_volume,[pointset_params(1), pointset_params(2)],'FillValues',0);
+transformed_pointset = imrotate(translated_pointset, pointset_params(3), 'crop');
+% Resize image
+[pointset_error, resized_pointset] = compute_error(volume_ref, transformed_pointset);
+pointset_error
+pointset_params
+
+figure('name','Point-set-based best translation and rotation');
+plot_rgb(volume_ref, resized_pointset, false)
+%{
+%Create dark volumes with white dots for each selected dot
+dot_number = 0;
+dark_ref = zeros(size(volume_ref));
+dark_shift = zeros(size(best_transform_volume));
+
+for slice = 1:size(points_of_interest.vol1,1)
+    ref_points = points_of_interest.vol1{slice};
+    shift_points = points_of_interest.vol2{slice};
+    for poi = 1:length(ref_points)
+        dot_number = dot_number + 1;
+        dark_ref(ref_points(poi,1),ref_points(poi,2), slice) = dot_number;
+        dark_shift(shift_points(poi,1),shift_points(poi,2), slice) = dot_number;
+    end
 end
+[ps_error, unseless, unused, pointset_params] = find_best_transformation(dark_ref, dark_shift, t_min, t_max, t_step, r_min, r_max, r_step, @distance_error);
+% Apply transformation
+translated_pointset = imtranslate(best_transform_volume,[pointset_params(1), pointset_params(2)],'FillValues',0);
+transformed_pointset = imrotate(translated_pointset, pointset_params(3), 'crop');
+% Resize image
+[pointset_error, resized_pointset] = compute_error(volume_ref, transformed_pointset);
+pointset_error
 
-tform = fitgeotrans(newvol_, ref_, 'NonreflectiveSimilarity')
-for i = 1:15
-    newvol_transformed(:,:,i) = imwarp(best_resized_volume(:,:,i), tform, 'OutputView', imref2d(size(volume_ref(:,:,i))));
-end
-    
-plot_rgb(volume_ref, newvol_transformed, false)
-
+figure('name','Point-set-based best translation and rotation');
+plot_rgb(volume_ref, resized_pointset, false)
+%}
 %% Section 4
+%{
 
 % Read two images
 optimizer = registration.optimizer.RegularStepGradientDescent;
@@ -76,7 +104,7 @@ non_rigid_volume = zeros(240,240,15);
 for i = 1:15
     non_rigid_volume(:,:,i) = imregister(volume_shift(:,:,i), volume_ref(:,:,i),'affine', optimizer,metric);
 end
-
+figure('name', 'sect4')
 plot_rgb(volume_ref, non_rigid_volume)
 [error, osef] = compute_error(volume_ref, non_rigid_volume);
 error
@@ -147,3 +175,4 @@ end
 
 %%
 imshowpair(image1, image2)
+%}
