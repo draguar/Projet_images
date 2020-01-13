@@ -43,6 +43,7 @@ best_params
 figure('name','Exploration-based best translation and rotation');
 plot_rgb(volume_ref, best_resized_volume, false)
 %% SECTION 3
+%{
 %type in points from images and get coordinates
 points_of_interest = GUI(volume_ref, translated_volume);
 ref_point = [];
@@ -66,32 +67,8 @@ pointset_params
 
 figure('name','Point-set-based best translation and rotation');
 plot_rgb(volume_ref, resized_pointset, false)
-%{
-%Create dark volumes with white dots for each selected dot
-dot_number = 0;
-dark_ref = zeros(size(volume_ref));
-dark_shift = zeros(size(best_transform_volume));
-
-for slice = 1:size(points_of_interest.vol1,1)
-    ref_points = points_of_interest.vol1{slice};
-    shift_points = points_of_interest.vol2{slice};
-    for poi = 1:length(ref_points)
-        dot_number = dot_number + 1;
-        dark_ref(ref_points(poi,1),ref_points(poi,2), slice) = dot_number;
-        dark_shift(shift_points(poi,1),shift_points(poi,2), slice) = dot_number;
-    end
-end
-[ps_error, unseless, unused, pointset_params] = find_best_transformation(dark_ref, dark_shift, t_min, t_max, t_step, r_min, r_max, r_step, @distance_error);
-% Apply transformation
-translated_pointset = imtranslate(best_transform_volume,[pointset_params(1), pointset_params(2)],'FillValues',0);
-transformed_pointset = imrotate(translated_pointset, pointset_params(3), 'crop');
-% Resize image
-[pointset_error, resized_pointset] = compute_error(volume_ref, transformed_pointset);
-pointset_error
-
-figure('name','Point-set-based best translation and rotation');
-plot_rgb(volume_ref, resized_pointset, false)
 %}
+
 %% Section 4
 %{
 
@@ -176,3 +153,14 @@ end
 %%
 imshowpair(image1, image2)
 %}
+
+%% Section 5
+%calculating best translation, generating corresponding image,and
+%keeping all the results in a list
+[mutual_error, mutual_transform_volume, mutual_resized_volume, mutual_params] = find_best_transformation(volume_ref, translated_volume, t_min, t_max, t_step, r_min, r_max, r_step, @mutual_information);
+mutual_error
+mutual_params
+figure('name','Mutual information based best translation and rotation');
+plot_rgb(volume_ref, mutual_resized_volume, false)
+
+%%
