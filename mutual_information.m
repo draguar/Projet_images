@@ -10,13 +10,12 @@ function [error, resized_volume] = mutual_information(volume_ref, volume_shift)
     resized_volume = zeros(shape_ref);
     resized_volume(1:shape_shift(1), 1:shape_shift(2),:) = volume_shift;
     
-    hist_ref = histogram(volume_ref, 255);
-    counts_ref = hist_ref.Values;
-    hist_shift = histogram(resized_volume, 255);
-    counts_shift = hist_shift.Values;
-    conjoint_hist = histogram2(volume_ref, resized_volume, 255);
-    conjoint_counts = conjoint_hist.Values;
+    edges = (0:255)/255;
+    
+    hist_ref = histcounts(volume_ref, edges);
+    hist_shift = histcounts(resized_volume, edges);
+    conjoint_hist = histcounts2(volume_ref, resized_volume, edges, edges);
       
-    pipj = 1 + counts_ref' * counts_shift;
-    log_val = log((1 + conjoint_counts) ./ pipj);
-    error = - sum(sum(conjoint_counts.*log_val));
+    pipj = 1 + hist_ref' * hist_shift;
+    log_val = log((1 + conjoint_hist) ./ pipj);
+    error = - sum(sum(conjoint_hist.*log_val));
