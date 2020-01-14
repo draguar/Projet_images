@@ -13,13 +13,10 @@ translated_volume = imtranslate(volume_shift,translation,'FillValues',0);
 
 % A GARDER POUR LE RAPPORT
 [error, resized_volume] = compute_error(volume_ref, volume_shift);
-error
 figure('name','Original volumes');
 plot_rgb(volume_ref, resized_volume, false);
 
 [error, resized_translated_volume] = compute_error(volume_ref, translated_volume);
-error
-translation
 figure('name','Centroid-based translation');
 plot_rgb(volume_ref, resized_translated_volume, false);
 
@@ -38,8 +35,6 @@ r_step = 3;
 %calculating best translation, generating corresponding image,and
 %keeping all the results in a list
 [lowest_error, best_transform_volume, best_resized_volume, best_params] = find_best_transformation(volume_ref, translated_volume, t_min, t_max, t_step, r_min, r_max, r_step);
-lowest_error
-best_params
 figure('name','Exploration-based best translation and rotation');
 plot_rgb(volume_ref, best_resized_volume, false)
 %% SECTION 3
@@ -158,9 +153,8 @@ imshowpair(image1, image2)
 %calculating best translation, generating corresponding image,and
 %keeping all the results in a list
 [mutual_error, mutual_transform_volume, mutual_resized_volume, mutual_params] = find_best_transformation(volume_ref, translated_volume, t_min, t_max, t_step, r_min, r_max, r_step, @mutual_information);
-mutual_error
-mutual_params
 figure('name','Mutual information based best translation and rotation');
 plot_rgb(volume_ref, mutual_resized_volume, false)
 
 %%
+
