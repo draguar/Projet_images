@@ -31,14 +31,17 @@ t_step = 1;
 r_min = -30;
 r_max = 30;
 r_step = 3;
-
+%{
 %calculating best translation, generating corresponding image,and
 %keeping all the results in a list
 [lowest_error, best_transform_volume, best_resized_volume, best_params] = find_best_transformation(volume_ref, translated_volume, t_min, t_max, t_step, r_min, r_max, r_step);
 figure('name','Exploration-based best translation and rotation');
 plot_rgb(volume_ref, best_resized_volume, false)
+%}
 %% SECTION 3
-%{
+
+stretch_max = 1.5;
+stretch_step = 0.05;
 %type in points from images and get coordinates
 points_of_interest = GUI(volume_ref, translated_volume);
 ref_point = [];
@@ -47,22 +50,27 @@ for slice = 1:size(points_of_interest.vol1,1)
     ref_point = [ref_point;points_of_interest.vol1{slice}];
     shift_points = [shift_points;points_of_interest.vol2{slice}];
 end
+ref_point(:,2) = size(volume_ref,2)-ref_point(:,2);
+shift_points(:,2)= size(volume_ref,2)-shift_points(:,2);
 ref_point'
 shift_points'
 
-[distance, pointset_params] = find_pointset_transformation(ref_point', shift_points', t_min, t_max, t_step, r_min, r_max, r_step);
+[distance, pointset_params] = find_pointset_transformation(ref_point', shift_points', t_min, t_max, t_step, r_min, r_max, r_step, stretch_max, stretch_step);
 
 % Apply transformation
-translated_pointset = imtranslate(translated_volume,[pointset_params(1), pointset_params(2)],'FillValues',0);
-transformed_pointset = imrotate(translated_pointset, pointset_params(3), 'crop');
+
+%stretched_volume = imresize(translated_volume, [pointset_params(4)*size(translated_volume,1),pointset_params(5)*size(translated_volume,2) ]);
+rotated_pointset = imrotate(translated_volume, pointset_params(3), 'crop');
+translated_pointset = imtranslate(rotated_pointset,[pointset_params(1), -pointset_params(2)],'FillValues',0);
+
 % Resize image
-[pointset_error, resized_pointset] = compute_error(volume_ref, transformed_pointset);
+[pointset_error, resized_pointset] = compute_error(volume_ref, translated_pointset);
 pointset_error
 pointset_params
 
 figure('name','Point-set-based best translation and rotation');
 plot_rgb(volume_ref, resized_pointset, false)
-%}
+
 
 %% Section 4
 %{
@@ -152,9 +160,11 @@ imshowpair(image1, image2)
 %% Section 5
 %calculating best translation, generating corresponding image,and
 %keeping all the results in a list
+%{
 [mutual_error, mutual_transform_volume, mutual_resized_volume, mutual_params] = find_best_transformation(volume_ref, translated_volume, t_min, t_max, t_step, r_min, r_max, r_step, @mutual_information);
 figure('name','Mutual information based best translation and rotation');
 plot_rgb(volume_ref, mutual_resized_volume, false)
+%}
 
 %%
 
