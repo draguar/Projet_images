@@ -3,6 +3,7 @@ function plot_rgb(volume_r, volume_g, close_all)
     % values and the other one for G values.
     % The volume must have the same dimensions.
     
+    % Close all windows if asked
     if nargin < 3
         close_all = true;
     end
@@ -11,12 +12,14 @@ function plot_rgb(volume_r, volume_g, close_all)
     end
     
     nb_subplots = size(volume_r, 3);
-    nb_by_axis = ceil(sqrt(nb_subplots));   
+    nb_by_axis = ceil(sqrt(nb_subplots));
+    
+    % RGB volume with red for volume_r and green for volume_g
     volume_rgb = zeros([size(volume_r),3]);
     volume_rgb(:,:,:,1) = volume_r;
     volume_rgb(:,:,:,2) = volume_g;
     
-    
+    % Plot a slice on each subplot
     for img_idx = 1:nb_subplots
         subplot(nb_by_axis,nb_by_axis,img_idx)
         image_rgb = volume_rgb(:,:,img_idx,:);

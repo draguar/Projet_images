@@ -6,6 +6,7 @@ function processed_volume = preprocess(nifti_file, n_classes)
     %The input nifti_file is the filename for the nifti to preprocess.
     % n_classes allow to chose the number of thresholds (2 thresholds allow
     % the removal of dark areas as well as of very bright ones)
+    % A values normalization is also applied.
     
     %load nifti file
     nii = load_nii(nifti_file);

@@ -93,6 +93,7 @@ function varargout = GUI_OutputFcn(hObject, eventdata, handles)
 % Get default command line output from handles structure
 varargout{2} = handles.output;
 varargout{1} = handles.selected_dots;
+closereq();
 
 
 % --- Executes on button press in pushbutton1.

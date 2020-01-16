@@ -5,8 +5,8 @@ function centroids = compute_centroids(volume)
 
     n_slices = size(volume, 3);
     shape = [size(volume, 1), size(volume, 2)];
-    centroids = zeros(n_slices,2);
-    binarized_volume = volume > 0;
+    centroids = zeros(n_slices,2); % Will contain centroid coordinates
+    binarized_volume = volume > 0; % We want barycenter with even mass for each pixel in the shape
     for i = 1:n_slices
         [y, x] = ndgrid(1:shape(1), 1:shape(2));
         centro_x = mean(x(binarized_volume(:,:,i)));
