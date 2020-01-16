@@ -127,8 +127,30 @@ C = imregister(B, A, 'affine', optimizer, metric);
 imshowpair(A,C)
 %the automated translation and rotation work fine
 
-%% test section 4 
+%% test section 3 
 
+%type in points from images and get coordinates
+[x_ref, y_ref, x_newvol, y_newvol] = get_points_of_interest_test_carre(A, B);
+
+
+% align these points
+ref_ = zeros(size(x_ref, 1), 2);
+for i = 1:size(x_ref)
+    ref_(i,1) = x_ref(i);
+    ref_(i,2) = y_ref(i);
+end
+
+newvol_ = zeros(size(x_newvol, 1), 2)
+for i = 1:size(x_newvol)
+    newvol_(i,1) = x_newvol(i);
+    newvol_(i,2) = y_newvol(i);
+end
+%%
+tform = fitgeotrans(newvol_, ref_, 'NonreflectiveSimilarity')
+D = imwarp(B, tform, 'OutputView', imref2d(size(A)));
+%%
+imshowpair(A, D) %% --> validé
+%% Section 5
 image1 = round(255*mat2gray(volume_ref(:,:,6)));
 image2 = round(255*mat2gray(resized_volume(:,:,6)));
 
